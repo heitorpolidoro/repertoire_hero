@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 
 export interface User {
   name: string;
@@ -27,7 +28,7 @@ export interface Playlist {
 export interface PracticeLevel {
   level: number;
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   color: string;
   bgColor: string;
 }

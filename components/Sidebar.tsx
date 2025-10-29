@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { FaTachometerAlt, FaPlus, FaSpotify, FaYoutube, FaUser } from 'react-icons/fa';
+import { FaTachometerAlt, FaPlus, FaSpotify, FaYoutube, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import { useAppContext } from '../hooks/useAppContext';
 import { getLevelDetails } from '../constants';
+import Login from './Login';
 
 interface SidebarProps {
   setView: (view: string, playlistId?: string) => void;
@@ -10,7 +11,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ setView, activeView }) => {
-  const { user, playlists, songs } = useAppContext();
+  const { user, playlists, songs, logout } = useAppContext();
 
   const calculatePlaylistLevel = (playlistId: string): number => {
     const playlist = playlists.find(p => p.id === playlistId);
@@ -42,13 +43,19 @@ const Sidebar: React.FC<SidebarProps> = ({ setView, activeView }) => {
         <h1 className="text-2xl font-bold text-indigo-400">Repertoire Hero</h1>
       </div>
 
-      {user && (
-        <div className="flex items-center mb-8 p-3 bg-gray-900 rounded-lg">
-          <img src={user.avatarUrl} alt={user.name} className="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500" />
-          <div>
-            <p className="font-semibold">{user.name}</p>
-            <p className="text-xs text-gray-400">Musician</p>
+      {user ? (
+        <div className="flex items-center mb-8 p-3 bg-gray-900 rounded-lg justify-between">
+          <div className="flex items-center">
+            <img src={user.avatarUrl} alt={user.name} className="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500" />
+            <div>
+              <p className="font-semibold">{user.name}</p>
+              <p className="text-xs text-gray-400">{user.title || 'Musician'}</p>
+            </div>
           </div>
+        </div>
+      ) : (
+        <div className="mb-8">
+          <Login />
         </div>
       )}
 
@@ -89,6 +96,18 @@ const Sidebar: React.FC<SidebarProps> = ({ setView, activeView }) => {
           </div>
         </div>
       </nav>
+
+      {user && (
+        <div className="mt-4">
+          <button
+            onClick={logout}
+            className="w-full px-4 py-2.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center justify-center"
+            title="Sign out"
+          >
+            <FaSignOutAlt className="mr-2" /> Logout
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

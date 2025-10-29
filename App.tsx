@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import PlaylistView from './components/PlaylistView';
 import ImportView from './components/ImportView';
 import MusicPlayer from './components/MusicPlayer';
+import Login from './components/Login';
 import { useAppContext } from './hooks/useAppContext';
 import type { Song } from './types';
 
@@ -12,7 +13,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const { songs, playlists, updateSongLevel } = useAppContext();
+  const { user, songs, playlists, updateSongLevel } = useAppContext();
 
   useEffect(() => {
     // Syncs the local currentSong state with the master songs list from context.
@@ -20,7 +21,7 @@ const App: React.FC = () => {
     // in the context, and this component's local state needs to reflect that change.
     if (currentSong) {
       const updatedSongFromContext = songs.find(s => s.id === currentSong.id);
-      
+
       // If the song exists in the context and is different from our local copy, update it.
       // We stringify for a simple deep comparison to avoid infinite re-render loops.
       if (updatedSongFromContext && JSON.stringify(updatedSongFromContext) !== JSON.stringify(currentSong)) {
@@ -33,7 +34,7 @@ const App: React.FC = () => {
     setCurrentView(view);
     setActivePlaylistId(playlistId);
   };
-  
+
   const currentPlaylist = playlists.find(p => p.id === activePlaylistId);
   const playlistSongs = currentPlaylist ? songs.filter(song => currentPlaylist.songIds.includes(song.id)) : [];
 
@@ -53,6 +54,17 @@ const App: React.FC = () => {
     }
   };
 
+  // If not logged in, show only the login button
+  if (!user) {
+    return (
+      <div className="flex h-screen bg-gray-900 text-gray-100 font-sans items-center justify-center">
+        <div className="w-[260px]">
+          <Login />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 font-sans">
       <Sidebar setView={handleSetView} activeView={currentView === 'dashboard' || currentView === 'import' ? currentView : activePlaylistId} />
@@ -63,8 +75,8 @@ const App: React.FC = () => {
           {currentView === 'import' && <ImportView />}
         </div>
         {currentSong && (
-          <MusicPlayer 
-            song={currentSong} 
+          <MusicPlayer
+            song={currentSong}
             onNext={handlePlayNext}
             onPrev={handlePlayPrev}
             hasNext={playlistSongs.findIndex(s => s.id === currentSong.id) < playlistSongs.length - 1}

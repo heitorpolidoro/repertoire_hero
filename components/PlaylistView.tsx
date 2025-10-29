@@ -1,32 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../hooks/useAppContext';
-import type { Song, PracticeLevel } from '../types';
+import type { Song } from '../types';
 import { PRACTICE_LEVELS, getLevelDetails, LEVEL_HOVER_CLASSES } from '../constants';
-import { FaSpotify, FaYoutube } from 'react-icons/fa';
-
-// Helper function to format duration from seconds to MM:SS
-const formatDuration = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-  return `${mins}:${secs}`;
-};
-
-// Helper function to format total duration into a readable string (HH:MM:SS)
-const formatTotalDuration = (totalSeconds: number): string => {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = Math.floor(totalSeconds % 60);
-
-  const minutesStr = minutes.toString().padStart(2, '0');
-  const secondsStr = seconds.toString().padStart(2, '0');
-
-  if (hours > 0) {
-    return `${hours}:${minutesStr}:${secondsStr}`;
-  } else {
-    return `${minutes}:${secondsStr}`;
-  }
-};
-
+import { formatDuration, formatTotalDuration } from '../lib/utils';
 
 // LevelIndicator Component
 const LevelIndicator: React.FC<{ level: number; large?: boolean }> = ({ level, large = false }) => {
@@ -80,10 +56,9 @@ const SongItem: React.FC<{ song: Song; onSelect: (song: Song) => void; isPlaying
 };
 
 // PlaylistView Component
-const PlaylistView: React.FC<{ playlistId: string; onSongSelect: (song: Song) => void }> = ({ playlistId, onSongSelect }) => {
-  const { playlists, songs } = useAppContext();
+const PlaylistView: React.FC<{ playlistId: string; }> = ({ playlistId }) => {
+  const { playlists, songs, setCurrentSong, currentSong } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<number | null>(null);
-  const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
 
   const playlist = playlists.find(p => p.id === playlistId);
 
@@ -106,8 +81,7 @@ const PlaylistView: React.FC<{ playlistId: string; onSongSelect: (song: Song) =>
   }
   
   const handleSelectAndPlay = (song: Song) => {
-    onSongSelect(song);
-    setCurrentPlayingId(song.id);
+    setCurrentSong(song);
   };
 
   return (
@@ -140,7 +114,7 @@ const PlaylistView: React.FC<{ playlistId: string; onSongSelect: (song: Song) =>
 
       <div className="space-y-2">
         {filteredSongs.length > 0 ? (
-          filteredSongs.map(song => <SongItem key={song.id} song={song} onSelect={handleSelectAndPlay} isPlaying={currentPlayingId === song.id} />)
+          filteredSongs.map(song => <SongItem key={song.id} song={song} onSelect={handleSelectAndPlay} isPlaying={currentSong?.id === song.id} />)
         ) : (
           <div className="text-center py-16 bg-gray-800 rounded-lg">
             <p className="text-gray-400">No songs match the current filter.</p>

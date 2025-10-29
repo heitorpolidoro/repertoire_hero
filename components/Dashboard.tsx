@@ -1,14 +1,13 @@
+"use client";
+
 import React from 'react';
+import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAppContext } from '../hooks/useAppContext';
 import { PRACTICE_LEVELS, getLevelDetails } from '../constants';
 import type { Song } from '../types';
 
-interface DashboardProps {
-    setView: (view: string, playlistId?: string) => void;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
+const Dashboard: React.FC = () => {
     const { songs, playlists } = useAppContext();
 
     const songsByLevel = PRACTICE_LEVELS.map(levelInfo => ({
@@ -90,12 +89,12 @@ const Dashboard: React.FC<DashboardProps> = ({ setView }) => {
                                                 {levelDetails.icon} {levelDetails.title}
                                             </span>
                                             {playlist && 
-                                              <button 
-                                                onClick={() => setView('playlist', playlist.id)}
+                                              <Link
+                                                href={`/playlist/${playlist.id}`}
                                                 className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full transition-colors"
                                               >
                                                   Go to Playlist
-                                              </button>
+                                              </Link>
                                             }
                                         </div>
                                     </li>

@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 export interface User {
   name: string;
   avatarUrl: string;
-  title: string;
 }
 
 export interface Song {

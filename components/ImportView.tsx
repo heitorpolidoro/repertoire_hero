@@ -1,40 +1,19 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { FaSpotify, FaYoutube, FaCheck } from 'react-icons/fa';
+import { mockImportablePlaylists } from '../data/mockData';
 import { useAppContext } from '../hooks/useAppContext';
 import type { Playlist } from '../types';
-import { apiFetch } from '../utils/api';
 
 const ImportView: React.FC = () => {
-    const { addPlaylist, playlists, user } = useAppContext();
+    const { addPlaylist, playlists } = useAppContext();
     const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
-    const [spotifyLists, setSpotifyLists] = useState<Playlist[]>([]);
-    const [youtubeLists, setYoutubeLists] = useState<Playlist[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const res = await apiFetch('/api/importable-playlists', { user });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (Array.isArray(data?.spotify)) setSpotifyLists(data.spotify as Playlist[]);
-                    if (Array.isArray(data?.youtube)) setYoutubeLists(data.youtube as Playlist[]);
-                }
-            } catch (e) {
-                console.error('Failed to fetch importable playlists', e);
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
-    }, []);
 
     const handleImport = (playlist: Playlist) => {
         addPlaylist(playlist);
         setImportedIds(prev => new Set(prev).add(playlist.id));
     };
-
+    
     const isImported = (playlistId: string) => importedIds.has(playlistId) || playlists.some(p => p.id === playlistId);
 
     const PlaylistCard: React.FC<{ playlist: Playlist, platform: 'spotify' | 'youtube' }> = ({ playlist, platform }) => {
@@ -50,7 +29,7 @@ const ImportView: React.FC = () => {
         };
 
         const styles = platformStyles[platform];
-
+        
         return (
             <div className="bg-gray-800 p-4 rounded-lg flex items-center justify-between shadow-md">
                 <div className="flex items-center">
@@ -85,25 +64,19 @@ const ImportView: React.FC = () => {
                 This is a simulation. Click "Import" to add pre-defined playlists from Spotify or YouTube to your collection.
             </p>
 
-            {loading ? (
-                <p className="text-gray-400">Loading available playlists...</p>
-            ) : (
-                <>
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center"><FaSpotify className="mr-3 text-green-500" /> From Spotify</h2>
-                        <div className="space-y-3">
-                            {spotifyLists.map(p => <PlaylistCard key={p.id} playlist={p as Playlist} platform="spotify" />)}
-                        </div>
-                    </div>
+            <div className="space-y-6">
+                <h2 className="text-2xl font-semibold flex items-center"><FaSpotify className="mr-3 text-green-500" /> From Spotify</h2>
+                <div className="space-y-3">
+                    {mockImportablePlaylists.spotify.map(p => <PlaylistCard key={p.id} playlist={p as Playlist} platform="spotify" />)}
+                </div>
+            </div>
 
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold flex items-center"><FaYoutube className="mr-3 text-red-500" /> From YouTube</h2>
-                        <div className="space-y-3">
-                            {youtubeLists.map(p => <PlaylistCard key={p.id} playlist={p as Playlist} platform="youtube" />)}
-                        </div>
-                    </div>
-                </>
-            )}
+            <div className="space-y-6">
+                <h2 className="text-2xl font-semibold flex items-center"><FaYoutube className="mr-3 text-red-500" /> From YouTube</h2>
+                <div className="space-y-3">
+                    {mockImportablePlaylists.youtube.map(p => <PlaylistCard key={p.id} playlist={p as Playlist} platform="youtube" />)}
+                </div>
+            </div>
         </div>
     );
 };

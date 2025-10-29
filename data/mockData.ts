@@ -4,7 +4,6 @@ import type { User, Song, Playlist } from '../types';
 export const mockUser: User = {
   name: 'Alex Turner',
   avatarUrl: 'https://picsum.photos/seed/repertoirehero/100/100',
-  title: 'Lead Guitarist',
 };
 
 export const mockSongs: Song[] = [

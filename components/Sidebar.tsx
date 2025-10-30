@@ -1,93 +1,116 @@
-"use client";
+import React, { useState, useEffect } from 'react';
+import { fetchUserProfile } from '../data/mockData';
+import { UserProfile } from '../types';
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { FaTachometerAlt, FaPlus, FaSpotify, FaYoutube, FaUser } from 'react-icons/fa';
-import { useAppContext } from '../hooks/useAppContext';
-import { getLevelDetails } from '../constants';
+const Sidebar = () => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const Sidebar: React.FC = () => {
-  const { user, playlists, songs } = useAppContext();
-  const pathname = usePathname();
+  useEffect(() => {
+    const getUserProfile = async () => {
+      try {
+        const profile = await fetchUserProfile();
+        setUser(profile);
+      } catch (err) {
+        setError('Failed to fetch user profile.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const calculatePlaylistLevel = (playlistId: string): number => {
-    const playlist = playlists.find(p => p.id === playlistId);
-    if (!playlist || playlist.songIds.length === 0) return 0;
+    getUserProfile();
+  }, []);
 
-    const playlistSongs = songs.filter(song => playlist.songIds.includes(song.id));
-    const totalLevel = playlistSongs.reduce((acc, song) => acc + song.level, 0);
-    return Math.round(totalLevel / playlistSongs.length);
+  const sidebarStyle: React.CSSProperties = {
+    width: '256px',
+    backgroundColor: '#1f2937', // bg-gray-800
+    color: '#f9fafb', // text-gray-50
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '1.5rem',
+    height: '100%',
+    boxSizing: 'border-box',
+    flexShrink: 0,
   };
 
-  const NavLink: React.FC<{
-    href: string;
-    isActive: boolean;
-    children: React.ReactNode;
-  }> = ({ href, isActive, children }) => (
-    <Link
-      href={href}
-      className={`block w-full text-left px-4 py-2.5 text-sm rounded-lg transition-colors duration-200 ${
-        isActive ? 'bg-indigo-600 text-white' : 'hover:bg-gray-700 text-gray-300'
-      }`}
-    >
-      {children}
-    </Link>
-  );
+  const profileSectionStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '2rem',
+    minHeight: '48px',
+  };
+
+  const avatarStyle: React.CSSProperties = {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    marginRight: '1rem',
+    backgroundColor: '#374151', // bg-gray-700
+  };
+
+  const profileInfoStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+  };
+
+  const nameStyle: React.CSSProperties = {
+    fontSize: '1rem',
+    fontWeight: '600',
+    margin: 0,
+  };
+
+  const instrumentStyle: React.CSSProperties = {
+    fontSize: '0.875rem',
+    color: '#d1d5db', // text-gray-300
+    margin: 0,
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '2rem',
+    borderTop: '1px solid #374151', // border-gray-700
+    paddingTop: '1.5rem',
+    marginTop: 0,
+  };
+
+  const navStyle: React.CSSProperties = {
+    flexGrow: 1,
+  };
+
+  const renderProfile = () => {
+    if (loading) {
+      return <div>Loading profile...</div>;
+    }
+    if (error) {
+      return <div>{error}</div>;
+    }
+    if (user) {
+      return (
+        <>
+          <img src={user.avatarUrl} alt="User Avatar" style={avatarStyle} />
+          <div style={profileInfoStyle}>
+            <h3 style={nameStyle}>{user.name}</h3>
+            <p style={instrumentStyle}>{user.instrument}</p>
+          </div>
+        </>
+      );
+    }
+    return null;
+  };
 
   return (
-    <aside className="w-64 bg-gray-800 text-white p-4 flex flex-col h-full shadow-lg">
-      <div className="flex items-center mb-8">
-        <h1 className="text-2xl font-bold text-indigo-400">Repertoire Hero</h1>
+    <aside style={sidebarStyle} aria-label="Sidebar">
+      <div style={profileSectionStyle}>
+        {renderProfile()}
       </div>
-
-      {user && (
-        <div className="flex items-center mb-8 p-3 bg-gray-900 rounded-lg">
-          <img src={user.avatarUrl} alt={user.name} className="w-10 h-10 rounded-full mr-3 border-2 border-indigo-500" />
-          <div>
-            <p className="font-semibold">{user.name}</p>
-            <p className="text-xs text-gray-400">Musician</p>
-          </div>
-        </div>
-      )}
-
-      <nav className="flex-1 flex flex-col space-y-2">
-        <div>
-          <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Main</h2>
-          <NavLink href="/" isActive={pathname === '/'}>
-            <FaTachometerAlt className="inline-block mr-3" /> Dashboard
-          </NavLink>
-          <NavLink href="/import" isActive={pathname === '/import'}>
-            <FaPlus className="inline-block mr-3" /> Import Playlist
-          </NavLink>
-        </div>
-
-        <div className="flex-1 overflow-y-auto pt-4">
-          <h2 className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Playlists</h2>
-          <div className="space-y-2">
-            {playlists.map(playlist => {
-              const avgLevel = calculatePlaylistLevel(playlist.id);
-              const levelDetails = getLevelDetails(avgLevel);
-              const Icon = playlist.source === 'spotify' ? FaSpotify : playlist.source === 'youtube' ? FaYoutube : FaUser;
-              const iconColor = playlist.source === 'spotify' ? 'text-green-500' : playlist.source === 'youtube' ? 'text-red-500' : 'text-indigo-400';
-              const isActive = pathname === `/playlist/${playlist.id}`;
-
-              return (
-                <NavLink key={playlist.id} href={`/playlist/${playlist.id}`} isActive={isActive}>
-                  <div className="flex items-center justify-between">
-                    <span className="truncate">
-                      <Icon className={`inline-block mr-3 ${iconColor}`} />
-                      {playlist.name}
-                    </span>
-                    <span title={levelDetails.title} className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${levelDetails.bgColor} ${levelDetails.color}`}>
-                      {avgLevel}
-                    </span>
-                  </div>
-                </NavLink>
-              );
-            })}
-          </div>
-        </div>
+      <h2 style={titleStyle}>My App</h2>
+      <nav style={navStyle}>
+        <ul>
+          {/* Menu items will be added here */}
+        </ul>
       </nav>
     </aside>
   );
